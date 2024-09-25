@@ -27,16 +27,28 @@ class CartController extends Controller
         // Retrieve the cart from session or create a new one if not exists
         $cart = session()->get('cart', []);
 
+        // Determine the price
+        $price = $product->discounted_price ?: $product->price;
+
+        // Calculate the discounted price if quantity is greater than 10
+        $discountedPrice = ($request->quantity > 10) ? $price * 0.90 : $price;
+
         // Check if the product is already in the cart
         if (isset($cart[$product->id])) {
             // Update the quantity if the product exists
             $cart[$product->id]['quantity'] += $request->quantity;
+
+            // Update the price for wholesale if applicable
+            if ($cart[$product->id]['quantity'] > 10) {
+                $cart[$product->id]['price'] = $discountedPrice; // Update price for wholesale
+            }
         } else {
             // Add the product to the cart
             $cart[$product->id] = [
                 "product_name" => $product->product_name,
                 "quantity" => $request->quantity,
-                "price" => $product->discounted_price ?: $product->price,
+                "price" => $discountedPrice, // Set the price based on quantity
+                "original_price" => $price, // Store the original price for display
                 "image" => $product->image
             ];
         }
@@ -46,6 +58,7 @@ class CartController extends Controller
 
         return back()->with('success', 'Product added to cart successfully!');
     }
+
 
     public function viewCart()
 {
@@ -58,8 +71,8 @@ class CartController extends Controller
 
     // Loop through each cart item to calculate subtotal and count unique products
     foreach ($cart as $item) {
-        // Ensure that 'price' and 'quantity' keys exist to avoid undefined index errors
-        if (isset($item['price']) && isset($item['quantity'])) {
+        // Ensure that 'price', 'quantity', and 'original_price' keys exist
+        if (isset($item['price'], $item['quantity'], $item['original_price'])) {
             $subtotal += $item['price'] * $item['quantity']; // Calculate subtotal
             $productCount++; // Count unique products (one for each item in the cart)
         }
@@ -72,6 +85,7 @@ class CartController extends Controller
     // Pass the cart, subtotal, total, and product count to the view
     return view('Home.cart', compact('cart', 'subtotal', 'total', 'productCount'));
 }
+
 
 
 

@@ -117,9 +117,20 @@
                             <h5>Total</h5>
                             <h5>₱{{ number_format($total, 2) }}</h5>
                         </div>
-                        <button class="btn btn-block btn-primary font-weight-bold my-3 py-3" type="button" onclick="location.href='{{ route('checkout') }}'">Proceed To Checkout</button>
                     </div>
+
+                    <!-- Display each product in the cart -->
+                    @foreach($cart as $item)
+                        <div class="d-flex justify-content-between">
+                            <span>{{ $item['product_name'] }}</span>
+                            <span>₱{{ number_format($item['original_price'], 2) }} (Wholesale: ₱{{ number_format($item['price'], 2) }})</span>
+                            <span>Qty: {{ $item['quantity'] }}</span>
+                        </div>
+                    @endforeach
+
+                    <button class="btn btn-block btn-primary font-weight-bold my-3 py-3" type="button" onclick="location.href='{{ route('checkout') }}'">Proceed To Checkout</button>
                 </div>
+
             </div>
         </div>
     </div>
